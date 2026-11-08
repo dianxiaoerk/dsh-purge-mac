@@ -31,6 +31,9 @@ git merge upstream/master      # 改动集中在两个文件，冲突面很小
 node --test test/mac-upgrade-detect.test.mjs
 ```
 
+插件自带的更新检查通过 `lib/community.js` 的 `REPOSITORY` 指向本 fork，所以不会出现「点一次更新就把
+mac 补丁换回上游版本」这种情况；上游的版本变化靠上面的 `git merge` 手动跟进。
+
 ## 构建与安装
 
 ```bash
