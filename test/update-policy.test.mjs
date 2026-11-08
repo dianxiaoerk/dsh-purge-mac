@@ -252,3 +252,24 @@ test('malformed channel credentials produce a redacted error rather than JSON pa
     assert.throws(()=>preferences(home),e=>/JSON/.test(e.message)&&!e.message.includes('SENSITIVE'));
   }finally{fs.rmSync(home,{recursive:true,force:true});}
 });
+
+test("远端版本不高于已装版本时不提示更新，避免被上游旧版顶掉", async () => {
+  for (const [remote, installed, expected] of [
+    ["1.6.5", "1.6.9", false],
+    ["1.6.9", "1.6.9", false],
+    ["1.7.0", "1.6.9", true],
+  ]) {
+    const f = setup({
+      readInstalledVersion: () => installed,
+      check: async () => ({ ok: true, hasUpdate: true, remoteVersion: remote }),
+    });
+    try {
+      f.c.start();
+      await f.c.run();
+      assert.equal(updateStatus(f.home).hasUpdate, expected, `${remote} vs ${installed}`);
+      assert.equal(updateStatus(f.home).availableVersion, remote);
+    } finally {
+      f.close();
+    }
+  }
+});
