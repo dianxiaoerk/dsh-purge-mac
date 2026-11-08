@@ -25,6 +25,12 @@ test('each release uses its own declared compatibility; historical absence keeps
 test("the install manifest pins the package archive to its own release tag", async () => {
   const {readFile} = await import("node:fs/promises");
   const pkg = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(pkg.dsh.install.tarball,
-    `https://github.com/kingcharleslzy-ai/dsh-purge/releases/download/v${pkg.version}/${pkg.name}-${pkg.version}.tgz`);
+  // fork 的发行地址是自己的仓库，所以只锁「版本号 + 包名 + release 路径」的形状，不锁组织名。
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(
+    pkg.dsh.install.tarball,
+    new RegExp(
+      `^https://github\\.com/[^/]+/[^/]+/releases/download/v${esc(pkg.version)}/${esc(pkg.name)}-${esc(pkg.version)}\\.tgz$`,
+    ),
+  );
 });
