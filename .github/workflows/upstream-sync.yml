@@ -1,0 +1,70 @@
+# 上游有新版时不会自动进到本 fork。这个 workflow 每天把 upstream/master 并进
+# 一个独立分支 upstream-sync（不直接动 master）：合并干净且 mac 补丁测试通过才推，
+# 冲突就让本次运行失败，等人来看。
+name: Upstream sync
+
+on:
+  schedule:
+    - cron: "0 21 * * *" # 05:00 Asia/Shanghai
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: master
+
+      - id: merge
+        name: Merge upstream/master into upstream-sync
+        run: |
+          set -euo pipefail
+          git config user.name  "upstream-sync"
+          git config user.email "upstream-sync@users.noreply.github.com"
+          git remote add upstream https://github.com/kingcharleslzy-ai/dsh-purge.git
+          git fetch --no-tags upstream master
+          if git merge-base --is-ancestor upstream/master HEAD; then
+            echo "upstream 已包含在 master 里，无需同步"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git switch -c upstream-sync
+          if ! git merge --no-edit upstream/master; then
+            echo "::error::上游与 fork 冲突，需人工合并"
+            git diff --name-only --diff-filter=U || true
+            exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - if: steps.merge.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - if: steps.merge.outputs.changed == 'true'
+        name: 依赖 + mac 补丁回归测试
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          node --test test/mac-upgrade-detect.test.mjs
+
+      - if: steps.merge.outputs.changed == 'true'
+        name: 推 upstream-sync 分支
+        run: git push --force origin upstream-sync
+
+      - if: steps.merge.outputs.changed == 'true'
+        name: 顺手开一个 PR（Actions 无权建 PR 就跳过）
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create --base master --head upstream-sync \
+            --title "上游同步 $(date -u +%Y-%m-%d)" \
+            --body "自动把 kingcharleslzy-ai/dsh-purge 的 master 并进来；mac 补丁测试已通过。合并前请确认官方换包判定的四处改动仍然成立。" \
+            || echo "PR 已存在或 Actions 无权建 PR，分支 upstream-sync 已就绪，可手动合并"
