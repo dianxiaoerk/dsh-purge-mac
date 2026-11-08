@@ -74,11 +74,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kingcharleslzy-ai/dsh-purge.git"
+    "url": "git+https://github.com/dianxiaoerk/dsh-purge-mac.git"
   },
-  "homepage": "https://github.com/kingcharleslzy-ai/dsh-purge#readme",
+  "homepage": "https://github.com/dianxiaoerk/dsh-purge-mac#readme",
   "bugs": {
-    "url": "https://github.com/kingcharleslzy-ai/dsh-purge/issues"
+    "url": "https://github.com/dianxiaoerk/dsh-purge-mac/issues"
   },
   "dsh": {
     "bundle": {
