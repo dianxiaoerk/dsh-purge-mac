@@ -1,6 +1,6 @@
 {
   "name": "dsh-purge-community",
-  "version": "1.6.85-mac.1",
+  "version": "1.6.86",
   "description": "让 AI 更专注地辅助学习与动手实验：DSH 附加组件，提供状态自检、提示词与规则管理、本机备份与回滚。",
   "type": "module",
   "main": "lib/index.js",
@@ -74,11 +74,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dianxiaoerk/dsh-purge-mac.git"
+    "url": "git+https://github.com/kingcharleslzy-ai/dsh-purge.git"
   },
-  "homepage": "https://github.com/dianxiaoerk/dsh-purge-mac#readme",
+  "homepage": "https://github.com/kingcharleslzy-ai/dsh-purge#readme",
   "bugs": {
-    "url": "https://github.com/dianxiaoerk/dsh-purge-mac/issues"
+    "url": "https://github.com/kingcharleslzy-ai/dsh-purge/issues"
   },
   "dsh": {
     "bundle": {

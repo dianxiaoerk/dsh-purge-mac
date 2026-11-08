@@ -23,6 +23,15 @@
 - 判定依赖 `app.asar.purge-handoff.json`。手工删掉它，就等于关掉自动重打。
 - 修完之后的第一次重启由插件自己调度；不想重启就把日志里的 `official upgrade reapplied` 当作已修。
 
+## 版本号与更新检查
+
+- 版本号取**上游下一个正式号**（本 fork 当前 `1.6.86`）。理由有两条：CI 与安装脚本都用
+  `dsh-purge-community-(\d+\.\d+\.\d+)\.tgz` 这种解析，prerelease 后缀会让它们直接抛错；
+  而版本高于上游时，插件自带的更新检查会认为「已是最新」，不会弹降级提示。
+- **不要改 `lib/community.js` 的 `REPOSITORY`**。它同时是 `validateArchive` 的身份白名单：
+  改成自己的仓库后，上游发布的 tgz（回滚基线、CI fixture）会因为 repository.url 不匹配而报
+  「安装包身份与发行版本不一致」，回滚路径直接断。
+
 ## 同步上游
 
 ```bash
@@ -31,8 +40,7 @@ git merge upstream/master      # 改动集中在两个文件，冲突面很小
 node --test test/mac-upgrade-detect.test.mjs
 ```
 
-插件自带的更新检查通过 `lib/community.js` 的 `REPOSITORY` 指向本 fork，所以不会出现「点一次更新就把
-mac 补丁换回上游版本」这种情况；上游的版本变化靠上面的 `git merge` 手动跟进。
+上游一旦发布到与本 fork 相同的版本号，就把本 fork 的 version 再往上加一位。
 
 ## 构建与安装
 
